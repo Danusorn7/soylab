@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customize Soy Powder Concept</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --teal: #1A5C52; --teal-light: #2D8C7E; --teal-pale: #E8F4F2;
+  --cream: #FAFAF5; --gold: #C8A84B; --text: #111; --gray: #888;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'DM Sans',sans-serif; background:var(--cream); min-height:100vh; overflow-x:hidden; }
+
+/* MODAL */
+#api-modal { position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; z-index:1000; }
+.modal-box { background:white; border-radius:28px; padding:52px 44px; max-width:460px; width:92%; text-align:center; box-shadow:0 40px 80px rgba(0,0,0,0.25); }
+.modal-icon { font-size:48px; margin-bottom:20px; }
+.modal-title { font-family:'Bebas Neue',sans-serif; font-size:36px; letter-spacing:2px; color:var(--teal); margin-bottom:10px; }
+.modal-desc { font-size:14px; color:var(--gray); line-height:1.7; margin-bottom:28px; }
+.modal-desc a { color:var(--teal-light); font-weight:600; }
+.modal-input { width:100%; padding:16px 20px; border:2px solid #eee; border-radius:14px; font-size:14px; font-family:'DM Sans',sans-serif; outline:none; margin-bottom:14px; transition:border-color 0.2s; }
+.modal-input:focus { border-color:var(--teal-light); }
+.modal-btn { width:100%; padding:16px; background:var(--teal); color:white; border:none; border-radius:14px; font-size:15px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; transition:background 0.2s; }
+.modal-btn:hover { background:var(--teal-light); }
+.modal-skip { background:none; border:none; color:#bbb; font-size:12px; cursor:pointer; margin-top:14px; font-family:'DM Sans',sans-serif; }
+
+/* LAYOUT */
+.app { min-height:100vh; display:flex; flex-direction:column; }
+.header { padding:32px 60px 0; display:flex; align-items:flex-start; justify-content:space-between; }
+.brand { display:flex; align-items:center; gap:14px; }
+.brand-dot { width:14px; height:14px; background:var(--teal); border-radius:50%; }
+.brand-name { font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:3px; color:var(--teal); }
+.activity-title { text-align:right; }
+.activity-label { font-size:10px; letter-spacing:4px; text-transform:uppercase; color:var(--gray); margin-bottom:4px; }
+.activity-name { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:2px; color:var(--teal); }
+
+/* PROGRESS */
+.progress-wrap { padding:24px 60px 0; }
+.progress-steps { display:flex; align-items:center; }
+.prog-step { display:flex; align-items:center; gap:10px; flex:1; }
+.prog-num { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; background:#eee; color:#aaa; transition:all 0.3s; flex-shrink:0; }
+.prog-label { font-size:11px; font-weight:500; color:#ccc; letter-spacing:0.5px; text-transform:uppercase; transition:color 0.3s; white-space:nowrap; }
+.prog-line { flex:1; height:2px; background:#eee; margin:0 8px; transition:background 0.3s; }
+.prog-step.active .prog-num { background:var(--teal); color:white; }
+.prog-step.active .prog-label { color:var(--teal); }
+.prog-step.done .prog-num { background:var(--gold); color:white; }
+.prog-step.done .prog-label { color:var(--gold); }
+.prog-line.done { background:var(--gold); }
+
+/* SCREEN */
+.screen { display:none; }
+.screen.active { display:flex; flex-direction:column; flex:1; padding:40px 60px 60px; animation:fadeUp 0.4s ease forwards; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+
+/* STEP HEADER */
+.step-header { margin-bottom:36px; }
+.step-num { font-size:11px; letter-spacing:4px; text-transform:uppercase; color:var(--teal-light); font-weight:600; margin-bottom:8px; }
+.step-title { font-family:'Bebas Neue',sans-serif; font-size:52px; letter-spacing:2px; color:var(--teal); line-height:1; }
+
+/* PRODUCT CARDS */
+.cards-grid { display:flex; flex-wrap:wrap; gap:16px; }
+.product-card { background:white; border:3px solid transparent; border-radius:20px; padding:24px 20px; width:150px; cursor:pointer; transition:all 0.25s cubic-bezier(0.34,1.56,0.64,1); text-align:center; box-shadow:0 2px 12px rgba(0,0,0,0.06); }
+.product-card:hover { transform:translateY(-4px); border-color:var(--teal-light); box-shadow:0 10px 30px rgba(26,92,82,0.15); }
+.product-card.selected { border-color:var(--teal); background:var(--teal); }
+.product-card .card-emoji { font-size:40px; margin-bottom:12px; }
+.product-card .card-name { font-size:13px; font-weight:600; color:var(--teal); line-height:1.3; }
+.product-card.selected .card-name { color:white; }
+
+/* FUNCTIONAL CARDS — new expandable style */
+.func-grid { display:flex; flex-wrap:wrap; gap:16px; }
+.func-card {
+  background:white; border:3px solid transparent; border-radius:20px;
+  padding:20px; cursor:pointer;
+  transition:all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow:0 2px 12px rgba(0,0,0,0.06);
+  width:220px;
+}
+.func-card:hover { transform:translateY(-4px); border-color:var(--teal-light); }
+.func-card.selected { border-color:var(--teal); background:var(--teal); }
+.fc-top { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+.fc-icon { font-size:28px; }
+.fc-name { font-family:'Bebas Neue',sans-serif; font-size:18px; letter-spacing:1px; color:var(--teal); }
+.func-card.selected .fc-name { color:white; }
+
+/* Ingredient chips inside functional card */
+.ing-chips { display:flex; flex-wrap:wrap; gap:6px; }
+.ing-chip {
+  padding:5px 10px; border:1.5px solid #ddd; border-radius:100px;
+  font-size:11px; font-weight:500; color:#555; cursor:pointer;
+  transition:all 0.2s; background:white;
+}
+.ing-chip:hover { border-color:var(--teal-light); color:var(--teal); }
+.ing-chip.selected { background:var(--teal); border-color:var(--teal); color:white; }
+.func-card.selected .ing-chip { border-color:rgba(255,255,255,0.4); color:rgba(255,255,255,0.7); background:rgba(255,255,255,0.1); }
+.func-card.selected .ing-chip.selected { background:white; color:var(--teal); border-color:white; }
+
+/* TARGET */
+.target-section { margin-bottom:28px; }
+.target-label { font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--gray); margin-bottom:14px; font-weight:600; }
+.target-chips { display:flex; flex-wrap:wrap; gap:10px; }
+.chip { padding:10px 22px; border:2px solid #ddd; border-radius:100px; font-size:13px; font-weight:500; cursor:pointer; transition:all 0.2s; background:white; color:var(--text); }
+.chip:hover { border-color:var(--teal-light); color:var(--teal); }
+.chip.selected { background:var(--teal); border-color:var(--teal); color:white; }
+
+/* FLAVOR */
+.flavor-group { margin-bottom:28px; }
+.flavor-group-title { font-family:'Bebas Neue',sans-serif; font-size:18px; letter-spacing:2px; color:var(--gold); margin-bottom:14px; }
+.flavor-chips { display:flex; flex-wrap:wrap; gap:10px; }
+.flavor-chip { padding:12px 22px; border:2px solid #ddd; border-radius:12px; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s; background:white; color:var(--text); text-align:center; }
+.flavor-chip .flavor-sub { font-size:10px; color:var(--gray); font-weight:400; margin-top:2px; }
+.flavor-chip:hover { border-color:var(--teal-light); }
+.flavor-chip.selected { background:var(--teal); border-color:var(--teal); color:white; }
+.flavor-chip.selected .flavor-sub { color:rgba(255,255,255,0.7); }
+
+/* CLAIMS */
+.claims-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; max-width:600px; }
+.claim-card { background:white; border:3px solid transparent; border-radius:16px; padding:24px 28px; cursor:pointer; transition:all 0.25s cubic-bezier(0.34,1.56,0.64,1); box-shadow:0 2px 12px rgba(0,0,0,0.06); }
+.claim-card:hover { border-color:var(--teal-light); transform:translateY(-3px); }
+.claim-card.selected { border-color:var(--teal); background:var(--teal); }
+.claim-card .claim-icon { font-size:28px; margin-bottom:10px; }
+.claim-card .claim-name { font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:1px; color:var(--teal); }
+.claim-card.selected .claim-name { color:white; }
+
+/* NAV BUTTONS */
+.nav-row { display:flex; gap:12px; margin-top:36px; }
+.back-btn { display:inline-flex; align-items:center; gap:8px; padding:16px 28px; background:transparent; border:2px solid #ddd; border-radius:100px; font-size:15px; font-weight:500; color:var(--gray); cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.2s; }
+.back-btn:hover { border-color:var(--teal); color:var(--teal); }
+.next-btn { display:inline-flex; align-items:center; gap:10px; padding:16px 40px; background:var(--teal); color:white; border:none; border-radius:100px; font-size:15px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; transition:all 0.2s; opacity:0.4; pointer-events:none; letter-spacing:0.5px; }
+.next-btn.enabled { opacity:1; pointer-events:all; }
+.next-btn.enabled:hover { background:var(--teal-light); transform:translateY(-2px); }
+
+/* RESULT */
+#screen-result { padding:40px 60px 60px; flex-direction:row !important; gap:60px; align-items:flex-start; }
+.result-left { flex:0 0 380px; }
+.result-image-frame { width:380px; height:440px; border-radius:28px; overflow:hidden; background:linear-gradient(135deg,var(--teal-pale),#d0ebe8); box-shadow:0 24px 60px rgba(26,92,82,0.2); position:relative; display:flex; align-items:center; justify-content:center; }
+.result-image-frame img { width:100%; height:100%; object-fit:cover; display:none; }
+.img-loading { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; position:absolute; inset:0; }
+.spinner { width:48px; height:48px; border:3px solid rgba(26,92,82,0.2); border-top-color:var(--teal); border-radius:50%; animation:spin 0.8s linear infinite; }
+@keyframes spin { to{transform:rotate(360deg)} }
+.img-loading-text { font-size:13px; color:var(--teal-light); letter-spacing:1px; }
+.result-right { flex:1; padding-top:8px; }
+.result-tag { display:inline-block; background:var(--teal); color:white; font-size:10px; letter-spacing:4px; text-transform:uppercase; padding:6px 16px; border-radius:100px; margin-bottom:20px; }
+.result-headline { font-family:'Bebas Neue',sans-serif; font-size:64px; line-height:1; color:var(--teal); margin-bottom:6px; letter-spacing:2px; }
+.result-headline span { color:var(--gold); }
+.result-subtitle { font-family:'DM Serif Display',serif; font-size:18px; color:var(--gray); font-style:italic; margin-bottom:28px; }
+.result-sections { display:flex; flex-direction:column; gap:20px; margin-bottom:32px; }
+.result-section-title { font-size:10px; letter-spacing:3px; text-transform:uppercase; color:var(--teal-light); font-weight:600; margin-bottom:8px; }
+.result-tags-row { display:flex; flex-wrap:wrap; gap:8px; }
+.result-tag-pill { padding:6px 14px; background:var(--teal-pale); border-radius:100px; font-size:12px; font-weight:500; color:var(--teal); }
+.result-tag-pill.gold { background:rgba(200,168,75,0.12); color:var(--gold); }
+.ai-description { font-size:14px; line-height:1.8; color:#555; border-left:3px solid var(--gold); padding-left:16px; font-style:italic; margin-bottom:28px; min-height:48px; }
+.formula-box { background:var(--teal); border-radius:16px; padding:20px 24px; margin-bottom:28px; }
+.formula-title { font-size:10px; letter-spacing:3px; text-transform:uppercase; color:rgba(255,255,255,0.6); margin-bottom:10px; }
+.formula-items { display:flex; flex-wrap:wrap; gap:8px; }
+.formula-item { padding:5px 12px; background:rgba(255,255,255,0.15); border-radius:100px; font-size:12px; color:white; font-weight:500; }
+.result-actions { display:flex; gap:12px; }
+.btn-restart { padding:14px 28px; background:transparent; border:2px solid var(--teal); border-radius:100px; font-size:14px; font-weight:500; color:var(--teal); cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.2s; }
+.btn-restart:hover { background:var(--teal); color:white; }
+</style>
+</head>
+<body>
+
+<div id="api-modal">
+  <div class="modal-box">
+    <div class="modal-icon">🔑</div>
+    <div class="modal-title">Gemini API Key</div>
+    <div class="modal-desc">ใส่ Gemini API Key เพื่อเปิดใช้งาน AI Image Generation<br><a href="https://aistudio.google.com/apikey" target="_blank">รับ API Key ฟรีที่ aistudio.google.com →</a></div>
+    <input id="api-key-input" class="modal-input" type="password" placeholder="AIza...">
+    <button class="modal-btn" onclick="saveApiKey()">เริ่มใช้งาน →</button><br>
+    <button class="modal-skip" onclick="skipApiKey()">ข้ามก่อน (ใช้รูป placeholder)</button>
+  </div>
+</div>
+
+<div class="app">
+  <div class="header">
+    <div class="brand"><div class="brand-dot"></div><div class="brand-name">SoyLab</div></div>
+    <div class="activity-title"><div class="activity-label">Activity</div><div class="activity-name">Customize Soy Powder Concept</div></div>
+  </div>
+  <div class="progress-wrap"><div class="progress-steps" id="progress-steps"></div></div>
+
+  <!-- STEP 1 -->
+  <div class="screen active" id="screen-1">
+    <div class="step-header"><div class="step-num">Step 1 of 5</div><div class="step-title">Select Product Concept</div></div>
+    <div class="cards-grid" id="cards-product"></div>
+    <div class="nav-row"><button class="next-btn" id="next-1" onclick="goToStep(2)">Next Step →</button></div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="screen" id="screen-2">
+    <div class="step-header"><div class="step-num">Step 2 of 5</div><div class="step-title">Select Functional</div></div>
+    <div class="func-grid" id="cards-func"></div>
+    <div class="nav-row">
+      <button class="back-btn" onclick="goToStep(1)">← Back</button>
+      <button class="next-btn" id="next-2" onclick="goToStep(3)">Next Step →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="screen" id="screen-3">
+    <div class="step-header"><div class="step-num">Step 3 of 5</div><div class="step-title">Select Target Customer</div></div>
+    <div class="target-section"><div class="target-label">Gender</div><div class="target-chips" id="chips-gender"></div></div>
+    <div class="target-section"><div class="target-label">Generation / Channel</div><div class="target-chips" id="chips-gen"></div></div>
+    <div class="nav-row">
+      <button class="back-btn" onclick="goToStep(2)">← Back</button>
+      <button class="next-btn" id="next-3" onclick="goToStep(4)">Next Step →</button>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="screen" id="screen-4">
+    <div class="step-header"><div class="step-num">Step 4 of 5</div><div class="step-title">Select Flavor</div></div>
+    <div class="flavor-group"><div class="flavor-group-title">⭐ Premium</div><div class="flavor-chips" id="chips-premium"></div></div>
+    <div class="flavor-group"><div class="flavor-group-title">Classic</div><div class="flavor-chips" id="chips-classic"></div></div>
+    <div class="nav-row">
+      <button class="back-btn" onclick="goToStep(3)">← Back</button>
+      <button class="next-btn" id="next-4" onclick="goToStep(5)">Next Step →</button>
+    </div>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="screen" id="screen-5">
+    <div class="step-header"><div class="step-num">Step 5 of 5</div><div class="step-title">Select Claims</div></div>
+    <div class="claims-grid" id="cards-claims"></div>
+    <div class="nav-row">
+      <button class="back-btn" onclick="goToStep(4)">← Back</button>
+      <button class="next-btn" id="next-5" onclick="showResult()">Generate My Product →</button>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="screen" id="screen-result">
+    <div class="result-left">
+      <div class="result-image-frame">
+        <div class="img-loading" id="img-loading"><div class="spinner"></div><div class="img-loading-text">Generating image...</div></div>
+        <img id="result-img" alt="Generated Product">
+      </div>
+    </div>
+    <div class="result-right">
+      <div class="result-tag">Your Custom Concept</div>
+      <div class="result-headline" id="r-headline">—</div>
+      <div class="result-subtitle" id="r-subtitle">—</div>
+      <div class="ai-description" id="r-desc">Generating description...</div>
+      <div class="result-sections">
+        <div><div class="result-section-title">Product Info</div><div class="result-tags-row" id="r-product-info"></div></div>
+        <div><div class="result-section-title">Target Group</div><div class="result-tags-row" id="r-target"></div></div>
+      </div>
+      <div class="formula-box"><div class="formula-title">Formula / Functional Ingredients</div><div class="formula-items" id="r-formula"></div></div>
+      <div class="result-actions"><button class="btn-restart" onclick="restart()">↺ Start Over</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PRODUCTS = [
+  { id:'soymilk', name:'Soy Milk', emoji:'🥛' },
+  { id:'soydrink', name:'Soy Drink', emoji:'🧃' },
+  { id:'highprotein', name:'High Protein', emoji:'💪' },
+  { id:'yogurt', name:'Yogurt', emoji:'🫙' },
+  { id:'icecream', name:'Ice Cream', emoji:'🍦' },
+  { id:'mayo', name:'Plant Mayo', emoji:'🥄' },
+  { id:'tofu', name:'Tofu', emoji:'🟨' },
+];
+
+const FUNCTIONALS = [
+  { id:'brain', name:'Brain & Cognition', icon:'🧠', ingredients:['Protygold','Creatine','Araca'] },
+  { id:'sport', name:'Sport', icon:'🏃', ingredients:['Cyanthox','Gremin','Curcuwin Ultra+'] },
+  { id:'muscle', name:'Muscle', icon:'💪', ingredients:['Gremin','Creatine','BCAA'] },
+  { id:'beauty', name:'Beauty', icon:'✨', ingredients:['Grantria','Omegia','Liposomal Vitamin C','Rose Essence'] },
+  { id:'immune', name:'Immune', icon:'🛡️', ingredients:['Colostrum','Liposomal Vitamin C'] },
+  { id:'relax', name:'Relax & Sleep', icon:'😴', ingredients:['Protygold','Lactium'] },
+  { id:'weight', name:'Weight Control', icon:'⚖️', ingredients:['Pep2dia','Actiponin','Apple Cider Vinegar','L-carnitine'] },
+  { id:'wellness', name:'Everyday Wellness', icon:'🌿', ingredients:['Cyanthox','Liposomal Vitamin C'] },
+];
+
+const GENDERS = ['Male','Female','LGBTQ+','Unisex'];
+const GENERATIONS = ['Gen X','Gen Y','Gen Z','Alpha','B2B','B2G'];
+
+const FLAVORS_PREMIUM = [
+  {id:'pistachio',name:'Pistachio',sub:'Pistachio paste'},
+  {id:'hazelnut',name:'Hazelnut',sub:'Hazelnut paste'},
+  {id:'walnut',name:'Premium Walnut',sub:'Walnut paste'},
+  {id:'matcha',name:'Matcha',sub:'Matcha powder'},
+  {id:'saltedcaramel',name:'Salted Caramel',sub:'Caramel powder'},
+  {id:'tiramisu',name:'Tiramisu',sub:''},
+];
+const FLAVORS_CLASSIC = [
+  {id:'chocolate',name:'Chocolate',sub:''},{id:'vanilla',name:'Vanilla',sub:''},
+  {id:'honey',name:'Honey',sub:''},{id:'original',name:'Original',sub:''},
+  {id:'strawberry',name:'Strawberry',sub:''},{id:'blueberry',name:'Blue Berry',sub:''},
+  {id:'raspberry',name:'Raspberry',sub:''},
+];
+
+const CLAIMS = [
+  {id:'italian',name:'Italian Source',icon:'🇮🇹'},
+  {id:'plantbase',name:'Plantbase',icon:'🌱'},
+  {id:'trademark',name:'Trademark',icon:'™️'},
+  {id:'vegan',name:'Vegan',icon:'🐾'},
+];
+
+const STEPS = ['Product','Functional','Target','Flavor','Claims'];
+
+// STATE — functionals & selectedIngredients are now arrays
+let state = {
+  product: null,
+  functionals: [],           // array of selected functional IDs
+  selectedIngredients: {},   // { functionalId: [ing1, ing2, ...] }
+  genders: [],
+  generations: [],
+  flavor: null,
+  claim: null,
+};
+let GEMINI_KEY = '';
+let currentStep = 1;
+
+function init() {
+  renderProgress();
+  renderProducts();
+  renderFunctionals();
+  renderTargets();
+  renderFlavors();
+  renderClaims();
+}
+
+function renderProgress() {
+  const wrap = document.getElementById('progress-steps');
+  wrap.innerHTML = '';
+  STEPS.forEach((label, i) => {
+    const step = i+1;
+    const div = document.createElement('div');
+    div.className = `prog-step${step===currentStep?' active':step<currentStep?' done':''}`;
+    div.innerHTML = `<div class="prog-num">${step<currentStep?'✓':step}</div><div class="prog-label">${label}</div>`;
+    wrap.appendChild(div);
+    if (i < STEPS.length-1) {
+      const line = document.createElement('div');
+      line.className = `prog-line${step<currentStep?' done':''}`;
+      wrap.appendChild(line);
+    }
+  });
+}
+
+function renderProducts() {
+  const c = document.getElementById('cards-product');
+  PRODUCTS.forEach(p => {
+    const el = document.createElement('div');
+    el.className = 'product-card';
+    el.innerHTML = `<div class="card-emoji">${p.emoji}</div><div class="card-name">${p.name}</div>`;
+    el.onclick = () => {
+      document.querySelectorAll('.product-card').forEach(e => e.classList.remove('selected'));
+      el.classList.add('selected');
+      state.product = p;
+      document.getElementById('next-1').classList.add('enabled');
+    };
+    c.appendChild(el);
+  });
+}
+
+function renderFunctionals() {
+  const c = document.getElementById('cards-func');
+  FUNCTIONALS.forEach(f => {
+    const card = document.createElement('div');
+    card.className = 'func-card';
+    card.id = `func-card-${f.id}`;
+
+    // Ingredient chips HTML
+    const ingHTML = f.ingredients.map(ing =>
+      `<div class="ing-chip" data-func="${f.id}" data-ing="${ing}" onclick="toggleIngredient(event,'${f.id}','${ing}')">${ing}</div>`
+    ).join('');
+
+    card.innerHTML = `
+      <div class="fc-top">
+        <div class="fc-icon">${f.icon}</div>
+        <div class="fc-name">${f.name}</div>
+      </div>
+      <div class="ing-chips">${ingHTML}</div>
+    `;
+
+    // Click on card header toggles functional selection
+    card.querySelector('.fc-top').onclick = () => toggleFunctional(f);
+    c.appendChild(card);
+  });
+}
+
+function toggleFunctional(f) {
+  const card = document.getElementById(`func-card-${f.id}`);
+  const isSelected = state.functionals.includes(f.id);
+
+  if (isSelected) {
+    state.functionals = state.functionals.filter(id => id !== f.id);
+    delete state.selectedIngredients[f.id];
+    card.classList.remove('selected');
+    // Deselect all ingredient chips
+    card.querySelectorAll('.ing-chip').forEach(c => c.classList.remove('selected'));
+  } else {
+    state.functionals.push(f.id);
+    state.selectedIngredients[f.id] = [...f.ingredients]; // default: all selected
+    card.classList.add('selected');
+    // Select all ingredient chips by default
+    card.querySelectorAll('.ing-chip').forEach(c => c.classList.add('selected'));
+  }
+  checkFunctional();
+}
+
+function toggleIngredient(e, funcId, ing) {
+  e.stopPropagation();
+  const chip = e.target;
+
+  // If functional not selected yet, select it first
+  if (!state.functionals.includes(funcId)) {
+    const f = FUNCTIONALS.find(x => x.id === funcId);
+    toggleFunctional(f);
+    return;
+  }
+
+  const arr = state.selectedIngredients[funcId] || [];
+  if (arr.includes(ing)) {
+    // Deselect — but keep at least 1
+    if (arr.length > 1) {
+      state.selectedIngredients[funcId] = arr.filter(x => x !== ing);
+      chip.classList.remove('selected');
+    }
+  } else {
+    state.selectedIngredients[funcId] = [...arr, ing];
+    chip.classList.add('selected');
+  }
+}
+
+function checkFunctional() {
+  if (state.functionals.length > 0)
+    document.getElementById('next-2').classList.add('enabled');
+  else
+    document.getElementById('next-2').classList.remove('enabled');
+}
+
+function renderTargets() {
+  const gWrap = document.getElementById('chips-gender');
+  const gGenWrap = document.getElementById('chips-gen');
+  GENDERS.forEach(g => {
+    const el = document.createElement('div');
+    el.className = 'chip'; el.textContent = g;
+    el.onclick = () => {
+      el.classList.toggle('selected');
+      state.genders = state.genders.includes(g) ? state.genders.filter(x=>x!==g) : [...state.genders,g];
+      checkTarget();
+    };
+    gWrap.appendChild(el);
+  });
+  GENERATIONS.forEach(g => {
+    const el = document.createElement('div');
+    el.className = 'chip'; el.textContent = g;
+    el.onclick = () => {
+      el.classList.toggle('selected');
+      state.generations = state.generations.includes(g) ? state.generations.filter(x=>x!==g) : [...state.generations,g];
+      checkTarget();
+    };
+    gGenWrap.appendChild(el);
+  });
+}
+
+function checkTarget() {
+  if (state.genders.length > 0 && state.generations.length > 0)
+    document.getElementById('next-3').classList.add('enabled');
+}
+
+function renderFlavors() {
+  const pWrap = document.getElementById('chips-premium');
+  const cWrap = document.getElementById('chips-classic');
+  [...FLAVORS_PREMIUM, ...FLAVORS_CLASSIC].forEach(f => {
+    const isPremium = FLAVORS_PREMIUM.find(x => x.id === f.id);
+    const el = document.createElement('div');
+    el.className = 'flavor-chip';
+    el.innerHTML = `${f.name}${f.sub?`<div class="flavor-sub">${f.sub}</div>`:''}`;
+    el.onclick = () => {
+      document.querySelectorAll('.flavor-chip').forEach(e=>e.classList.remove('selected'));
+      el.classList.add('selected');
+      state.flavor = f;
+      document.getElementById('next-4').classList.add('enabled');
+    };
+    (isPremium?pWrap:cWrap).appendChild(el);
+  });
+}
+
+function renderClaims() {
+  const c = document.getElementById('cards-claims');
+  CLAIMS.forEach(cl => {
+    const el = document.createElement('div');
+    el.className = 'claim-card';
+    el.innerHTML = `<div class="claim-icon">${cl.icon}</div><div class="claim-name">${cl.name}</div>`;
+    el.onclick = () => {
+      document.querySelectorAll('.claim-card').forEach(e=>e.classList.remove('selected'));
+      el.classList.add('selected');
+      state.claim = cl;
+      document.getElementById('next-5').classList.add('enabled');
+    };
+    c.appendChild(el);
+  });
+}
+
+function goToStep(step) {
+  document.getElementById(`screen-${currentStep}`).classList.remove('active');
+  currentStep = step;
+  document.getElementById(`screen-${step}`).classList.add('active');
+  renderProgress();
+  window.scrollTo(0,0);
+}
+
+function showResult() {
+  document.getElementById(`screen-${currentStep}`).classList.remove('active');
+  document.getElementById('screen-result').classList.add('active');
+  document.querySelector('.progress-wrap').style.display = 'none';
+  populateResult();
+}
+
+function restart() {
+  state = { product:null, functionals:[], selectedIngredients:{}, genders:[], generations:[], flavor:null, claim:null };
+  currentStep = 1;
+  document.getElementById('screen-result').classList.remove('active');
+  document.querySelector('.progress-wrap').style.display = 'block';
+  document.getElementById('screen-1').classList.add('active');
+  document.getElementById('result-img').style.display = 'none';
+  document.getElementById('img-loading').style.display = 'flex';
+  document.querySelectorAll('.product-card,.func-card,.ing-chip,.chip,.flavor-chip,.claim-card').forEach(e=>e.classList.remove('selected'));
+  ['next-1','next-2','next-3','next-4','next-5'].forEach(id=>document.getElementById(id).classList.remove('enabled'));
+  renderProgress();
+}
+
+function populateResult() {
+  const p = state.product;
+  const fl = state.flavor;
+  const cl = state.claim;
+
+  // Get selected functionals info
+  const selectedFuncs = FUNCTIONALS.filter(f => state.functionals.includes(f.id));
+  const funcNames = selectedFuncs.map(f => f.name).join(' + ');
+  const funcIcons = selectedFuncs.map(f => f.icon).join('');
+
+  // Get all selected ingredients
+  const allIngredients = [];
+  selectedFuncs.forEach(f => {
+    const ings = state.selectedIngredients[f.id] || [];
+    ings.forEach(ing => { if (!allIngredients.includes(ing)) allIngredients.push(ing); });
+  });
+
+  document.getElementById('r-headline').innerHTML = `${funcIcons} <span>${funcNames}</span>`;
+  document.getElementById('r-subtitle').textContent = `${p.name} · ${fl.name} Flavor`;
+
+  document.getElementById('r-product-info').innerHTML = [p.name, fl.name, cl.name]
+    .map(t=>`<div class="result-tag-pill">${t}</div>`).join('');
+
+  document.getElementById('r-target').innerHTML = [...state.genders,...state.generations]
+    .map(t=>`<div class="result-tag-pill gold">${t}</div>`).join('');
+
+  document.getElementById('r-formula').innerHTML = allIngredients
+    .map(i=>`<div class="formula-item">${i}</div>`).join('');
+
+  callGemini(selectedFuncs, allIngredients);
+}
+
+async function callGemini(selectedFuncs, allIngredients) {
+  const p = state.product;
+  const fl = state.flavor;
+  const cl = state.claim;
+  const targets = [...state.genders,...state.generations].join(', ');
+  const funcNames = selectedFuncs.map(f=>f.name).join(', ');
+  const ingsText = allIngredients.join(', ');
+
+  // Fixed prompt template — only values in [...] change
+  const imagePrompt = `A premium soy powder product packaging photo.
+Product type: [${p.name}]
+Flavor: [${fl.name}]
+Functional claim on pack: [${funcNames}]
+Target style: [${targets} - clean, mindful aesthetic]
+Claims badge: [${cl.name}]
+Italian source soybean.
+Minimalist premium packaging, white and green tones,
+soft studio lighting, product photography style.`;
+
+  const descEl = document.getElementById('r-desc');
+  descEl.textContent = 'Generating description...';
+
+  if (!GEMINI_KEY) {
+    descEl.textContent = `A premium ${p.name} with ${funcNames} functionality, crafted for ${targets}. ${fl.name} flavored with ${cl.name} certification — made from Italian-source soybeans.`;
+    showPlaceholder(selectedFuncs);
+    return;
+  }
+
+  // Text description
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,
+      { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ contents:[{ parts:[{ text:
+          `Write a compelling 2-sentence product description (max 40 words) for a premium soy powder product:
+- Product Type: ${p.name}
+- Functional Benefits: ${funcNames}
+- Key Ingredients: ${ingsText}
+- Flavor: ${fl.name}
+- Target: ${targets}
+- Claim: ${cl.name}
+- Origin: Italian-source soybean
+Be sensory and premium. Output description only.`
+        }]}]})
+      }
+    );
+    if (res.ok) {
+      const data = await res.json();
+      descEl.textContent = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || descEl.textContent;
+    }
+  } catch(e) {}
+
+  // Image generation
+  try {
+    document.getElementById('img-loading').querySelector('.img-loading-text').textContent = 'กำลัง generate รูปภาพ...';
+    const imgRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${GEMINI_KEY}`,
+      { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          contents:[{ parts:[{ text: imagePrompt }]}],
+          generationConfig:{ responseModalities:['TEXT','IMAGE'] }
+        })
+      }
+    );
+    if (!imgRes.ok) throw new Error(imgRes.status);
+    const imgData = await imgRes.json();
+    const parts = imgData.candidates?.[0]?.content?.parts || [];
+    const imagePart = parts.find(p => p.inlineData?.mimeType?.startsWith('image/'));
+    if (imagePart) {
+      const imgEl = document.getElementById('result-img');
+      imgEl.src = `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}`;
+      imgEl.onload = () => {
+        document.getElementById('img-loading').style.display = 'none';
+        imgEl.style.display = 'block';
+      };
+    } else throw new Error('no image');
+  } catch(e) {
+    console.error(e);
+    showPlaceholder(selectedFuncs);
+  }
+}
+
+function showPlaceholder(selectedFuncs) {
+  const colors = {brain:'#7B9EBF',sport:'#7BAF7F',muscle:'#BF8C7B',beauty:'#BF7B9E',immune:'#9EBF7B',relax:'#9E7BBF',weight:'#BFB47B',wellness:'#7BBFB4'};
+  const c = colors[selectedFuncs[0]?.id] || '#7BAF7F';
+  const icons = selectedFuncs.map(f=>f.icon).join(' ');
+  const names = selectedFuncs.map(f=>f.name).join(' + ');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="380" height="440" viewBox="0 0 380 440">
+    <defs><radialGradient id="bg2" cx="50%" cy="40%" r="60%"><stop offset="0%" stop-color="${c}" stop-opacity="0.25"/><stop offset="100%" stop-color="#E8F4F2"/></radialGradient></defs>
+    <rect width="380" height="440" fill="url(#bg2)"/>
+    <rect x="120" y="60" width="140" height="260" rx="16" fill="white" opacity="0.8"/>
+    <rect x="130" y="70" width="120" height="240" rx="12" fill="${c}" opacity="0.3"/>
+    <text x="190" y="155" text-anchor="middle" font-family="Georgia,serif" font-size="28" fill="#1A5C52">${icons}</text>
+    <text x="190" y="185" text-anchor="middle" font-family="Georgia,serif" font-size="11" fill="#1A5C52" font-weight="bold">${state.product?.name}</text>
+    <text x="190" y="203" text-anchor="middle" font-family="Georgia,serif" font-size="10" fill="#555">${state.flavor?.name}</text>
+    <text x="190" y="225" text-anchor="middle" font-family="Georgia,serif" font-size="9" fill="#2D8C7E">${names}</text>
+    <rect x="140" y="255" width="100" height="22" rx="8" fill="${c}" opacity="0.4"/>
+    <text x="190" y="270" text-anchor="middle" font-family="Georgia,serif" font-size="9" fill="#1A5C52">${state.claim?.name}</text>
+    <text x="190" y="380" text-anchor="middle" font-family="Georgia,serif" font-size="11" fill="#aaa">AI Image Placeholder</text>
+  </svg>`;
+  const blob = new Blob([svg],{type:'image/svg+xml'});
+  const imgEl = document.getElementById('result-img');
+  imgEl.onload = () => { document.getElementById('img-loading').style.display='none'; imgEl.style.display='block'; };
+  imgEl.src = URL.createObjectURL(blob);
+}
+
+function saveApiKey() {
+  const val = document.getElementById('api-key-input').value.trim();
+  if (!val) { alert('กรุณาใส่ API Key'); return; }
+  GEMINI_KEY = val;
+  document.getElementById('api-modal').style.display = 'none';
+}
+function skipApiKey() { document.getElementById('api-modal').style.display = 'none'; }
+
+init();
+</script>
+</body>
+</html>
